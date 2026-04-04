@@ -1,0 +1,15 @@
+{
+  "name": "PanelPro Field",
+  "short_name": "PanelPro",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#191626",
+  "theme_color": "#3B00DB",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192x192/3B00DB/ffffff?text=PP",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
