@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#191626">
+    <title>PanelPro • Field</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        
+        :root {
+            --bg: #191626;
+            --accent: #3B00DB;
+            --text: #f0f0f5;
+            --muted: #7a7a8c;
+        }
+        
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 16px;
+            line-height: 1.3;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        header {
+            background: #120f1e;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--accent);
+            flex-shrink: 0;
+        }
+        
+        .header-title {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+        
+        main {
+            flex: 1;
+            overflow: auto;
+            padding: 16px;
+            display: none;
+        }
+        
+        main.active { display: block; }
+        
+        .view { animation: fadeIn 0.2s ease; }
+        
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        
+        /* High-contrast buttons */
+        button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            margin-bottom: 12px;
+            min-height: 56px;
+        }
+        
+        button.secondary {
+            background: #2a2638;
+            color: var(--text);
+        }
+        
+        /* Measurement inputs – custom, no native keyboard */
+        .meas-input {
+            background: #2a2638;
+            border: 2px solid #3a3550;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text);
+            min-height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .meas-input.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59, 0, 219, 0.3);
+        }
+        
+        .meas-label {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 4px;
+            display: block;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        /* Numpad */
+        #numpad {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #120f1e;
+            border-top: 3px solid var(--accent);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.6);
+        }
+        
+        #numpad.show { display: flex; }
+        
+        .numpad-bar {
+            padding: 12px 16px;
+            background: #1f1b2e;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 600;
+            border-bottom: 1px solid #3a3550;
+        }
+        
+        .numpad-keys {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2px;
+            padding: 8px;
+            background: #120f1e;
+        }
+        
+        .numpad-key {
+            background: #2a2638;
+            color: var(--text);
+            border: none;
+            height: 56px;
+            font-size: 22px;
+            font-weight: 600;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .numpad-key.wide { grid-column: span 2; }
+        
+        /* Canvas */
+        #layout-canvas {
+            width: 100%;
+            max-width: 100%;
+            background: #1f1b2e;
+            border-radius: 12px;
+            border: 3px solid #3a3550;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+        
+        /* Lists */
+        .card {
+            background: #2a2638;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 2px solid #3a3550;
+        }
+        
+        .bottom-nav {
+            display: flex;
+            background: #120f1e;
+            border-top: 2px solid var(--accent);
+            flex-shrink: 0;
+        }
+        
+        .nav-item {
+            flex: 1;
+            padding: 12px 8px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .nav-item.active {
+            color: var(--accent);
+        }
+        
+        .nav-item svg { width: 24px; height: 24px; }
+        
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(18,15,30,0.95);
+            z-index: 10000;
+            display: none;
+            align-items: flex-end;
+        }
+        
+        .modal.show { display: flex; }
+        
+        .modal-content {
+            background: #191626;
+            width: 100%;
+            max-height: 90dvh;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            padding: 20px;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-title">PanelPro • Field</div>
+        <div style="font-size:13px; color:#3B00DB; font-weight:600;" id="current-project"></div>
+    </header>
+
+    <!-- VIEW: DASHBOARD / PROJECTS -->
+    <main id="view-dashboard" class="view active">
+        <h2 style="margin-bottom:16px; font-size:22px;">Projects</h2>
+        <button onclick="newProject()">+ New Project</button>
+        <div id="project-list"></div>
+    </main>
+
+    <!-- VIEW: PROJECT DETAIL -->
+    <main id="view-project">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+            <h2 id="project-name" style="font-size:22px;"></h2>
+            <button class="secondary" onclick="backToDashboard()" style="width:auto; padding:8px 16px;">← Back</button>
+        </div>
+        <button onclick="addWallToProject()">+ Add Gable End Wall</button>
+        <div id="wall-list"></div>
+    </main>
+
+    <!-- VIEW: WALL GEOMETRY INPUT -->
+    <main id="view-geometry">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+            <h2 id="wall-title" style="font-size:20px;"></h2>
+            <button class="secondary" onclick="saveWallGeometry()" style="width:auto; padding:8px 16px;">Save Wall</button>
+        </div>
+        
+        <div class="card">
+            <div class="meas-label">Wall Name</div>
+            <input id="wall-name-input" type="text" style="width:100%; background:#2a2638; border:2px solid #3a3550; color:white; padding:12px; border-radius:8px; font-size:16px;" placeholder="North Gable">
+            
+            <div class="grid-2" style="margin-top:16px;">
+                <div>
+                    <div class="meas-label">Wall Width</div>
+                    <div class="meas-input" id="meas-width" data-id="width"></div>
+                </div>
+                <div>
+                    <div class="meas-label">Left Eave Height</div>
+                    <div class="meas-input" id="meas-left-eave" data-id="leftEave"></div>
+                </div>
+            </div>
+            
+            <div class="grid-2" style="margin-top:16px;">
+                <div>
+                    <div class="meas-label">Right Eave Height</div>
+                    <div class="meas-input" id="meas-right-eave" data-id="rightEave"></div>
+                </div>
+                <div>
+                    <div class="meas-label">Left Panel Cut Height</div>
+                    <div class="meas-input" id="meas-left-cut" data-id="leftCut"></div>
+                </div>
+            </div>
+            
+            <div class="grid-2" style="margin-top:16px;">
+                <div>
+                    <div class="meas-label">Right Panel Cut Height</div>
+                    <div class="meas-input" id="meas-right-cut" data-id="rightCut"></div>
+                </div>
+                <div>
+                    <div class="meas-label">Ridge Height (additional)</div>
+                    <div class="meas-input" id="meas-ridge-height" data-id="ridgeHeight"></div>
+                </div>
+            </div>
+            
+            <div class="grid-2" style="margin-top:16px;">
+                <div>
+                    <div class="meas-label">Ridge Distance from Left</div>
+                    <div class="meas-input" id="meas-ridge-left" data-id="ridgeLeft"></div>
+                </div>
+                <div>
+                    <div class="meas-label">Ridge Distance from Right</div>
+                    <div class="meas-input" id="meas-ridge-right" data-id="ridgeRight"></div>
+                </div>
+            </div>
+            
+            <div style="margin-top:16px;">
+                <div class="meas-label">Panel Profile</div>
+                <select id="wall-profile-select" style="width:100%; background:#2a2638; border:2px solid #3a3550; color:white; padding:12px; border-radius:8px; font-size:16px;"></select>
+            </div>
+            
+            <button onclick="addOpening()" style="margin-top:20px;" class="secondary">+ Add Opening</button>
+            <div id="openings-list" style="margin-top:8px;"></div>
+        </div>
+    </main>
+
+    <!-- VIEW: LAYOUT & CUT LIST -->
+    <main id="view-layout">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+            <h2 id="layout-wall-name"></h2>
+            <button onclick="backToProject()" class="secondary" style="width:auto; padding:8px 16px;">← Back</button>
+        </div>
+        
+        <h3 style="margin:12px 0 8px; font-size:15px; color:var(--muted);">3 Balanced Layout Options</h3>
+        <div id="layout-options"></div>
+        
+        <canvas id="layout-canvas" width="380" height="420"></canvas>
+        
+        <h3 style="margin:20px 0 8px; font-size:17px;">Cut List (Left Height → Right Height)</h3>
+        <div id="cut-list"></div>
+    </main>
+
+    <!-- VIEW: REFERENCE LIBRARY + PROFILE CATALOG -->
+    <main id="view-library">
+        <h2 style="margin-bottom:16px;">Reference Library</h2>
+        
+        <div class="card">
+            <h3 style="margin-bottom:12px; font-size:17px;">Industry Standard Profiles</h3>
+            <div id="std-profiles"></div>
+        </div>
+        
+        <div class="card">
+            <h3 style="margin-bottom:12px; font-size:17px;">Your Panel Catalog</h3>
+            <button onclick="showProfileModal()" class="secondary">+ Add / Edit Profile</button>
+            <div id="user-profiles"></div>
+        </div>
+    </main>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="navigate(0)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1v-5m10-10l2 2m-2-2v10a1 1 0 01-1 1v-5m-6 0a1 1 0 001-1v5" /></svg>
+            <span>Projects</span>
+        </div>
+        <div class="nav-item" onclick="navigate(1)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m-3-9h6m-6 6h6" /></svg>
+            <span>New Wall</span>
+        </div>
+        <div class="nav-item" onclick="navigate(2)">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6 6-6" /></svg>
+            <span>Library</span>
+        </div>
+    </div>
+
+    <!-- CUSTOM NUMPAD -->
+    <div id="numpad">
+        <div class="numpad-bar">
+            <span id="numpad-buffer" style="flex:1; font-family:monospace;">—</span>
+            <span id="numpad-live" style="color:#3B00DB; font-size:17px;"></span>
+        </div>
+        <div class="numpad-keys">
+            <button class="numpad-key" onclick="numpadPress('1')">1</button>
+            <button class="numpad-key" onclick="numpadPress('2')">2</button>
+            <button class="numpad-key" onclick="numpadPress('3')">3</button>
+            <button class="numpad-key" onclick="numpadPress('′')">′</button>
+            
+            <button class="numpad-key" onclick="numpadPress('4')">4</button>
+            <button class="numpad-key" onclick="numpadPress('5')">5</button>
+            <button class="numpad-key" onclick="numpadPress('6')">6</button>
+            <button class="numpad-key" onclick="numpadPress('″')">″</button>
+            
+            <button class="numpad-key" onclick="numpadPress('7')">7</button>
+            <button class="numpad-key" onclick="numpadPress('8')">8</button>
+            <button class="numpad-key" onclick="numpadPress('9')">9</button>
+            <button class="numpad-key" onclick="numpadPress('/')">/</button>
+            
+            <button class="numpad-key" onclick="numpadPress('-')">-</button>
+            <button class="numpad-key" onclick="numpadPress('0')">0</button>
+            <button class="numpad-key wide" onclick="numpadPress('⌫')">⌫</button>
+            <button class="numpad-key" onclick="numpadPress('↵')" style="background:#3B00DB; color:white;">↵</button>
+        </div>
+    </div>
+
+    <!-- PROFILE MODAL -->
+    <div id="profile-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title">Panel Profile</h3>
+            <div style="margin-top:16px;">
+                <div class="meas-label">Name</div>
+                <input id="profile-name" type="text" style="width:100%; background:#2a2638; border:2px solid #3a3550; color:white; padding:12px; border-radius:8px;">
+                
+                <div class="grid-2" style="margin-top:16px;">
+                    <div>
+                        <div class="meas-label">Coverage Width (in)</div>
+                        <div class="meas-input" id="meas-coverage" data-id="coverage"></div>
+                    </div>
+                    <div>
+                        <div class="meas-label">Rib Spacing OC (in)</div>
+                        <div class="meas-input" id="meas-rib" data-id="rib"></div>
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex; gap:12px; margin-top:24px;">
+                <button onclick="hideProfileModal()" class="secondary" style="flex:1;">Cancel</button>
+                <button onclick="saveProfile()" style="flex:1;">Save Profile</button>
+            </div>
+            <button onclick="deleteCurrentProfile()" style="margin-top:8px; background:#8b0000; width:100%;">Delete Profile</button>
+        </div>
+    </div>
+
+    <script>
+        // =============================================
+        // ARCHITECTURE: Pure Vanilla ES6+ | Offline PWA
+        // Senior Systems Engineer – High-Precision Geometry
+        // All measurements stored as decimal inches
+        // Rounded exclusively to nearest 1/8"
+        // =============================================
+
+        // Global state
+        let currentProject = null;
+        let currentWall = null;
+        let currentProfileEditId = null;
+        
+        // Numpad singleton + pub/sub (exactly as specified)
+        const numpadState = {
+            activeId: null,
+            buffer: '',
+            listeners: new Set()
+        };
+        
+        function setNumpadActive(id) {
+            numpadState.activeId = id;
+            numpadState.buffer = '';
+            document.getElementById('numpad').classList.add('show');
+            updateNumpadDisplay();
+            // Notify listeners
+            numpadState.listeners.forEach(cb => cb());
+        }
+        
+        function numpadPress(key) {
+            if (key === '⌫') {
+                numpadState.buffer = numpadState.buffer.slice(0, -1);
+            } else if (key === '↵') {
+                commitNumpadInput();
+                return;
+            } else {
+                numpadState.buffer += key;
+            }
+            updateNumpadDisplay();
+        }
+        
+        function updateNumpadDisplay() {
+            const bufferEl = document.getElementById('numpad-buffer');
+            const liveEl = document.getElementById('numpad-live');
+            
+            bufferEl.textContent = numpadState.buffer || '—';
+            
+            const parsed = parseImperialInput(numpadState.buffer);
+            if (parsed !== null) {
+                const rounded = roundToEighth(parsed);
+                liveEl.textContent = formatFeetInches(rounded).displayWithTotal;
+            } else {
+                liveEl.textContent = '—';
+            }
+        }
+        
+        function commitNumpadInput() {
+            const parsed = parseImperialInput(numpadState.buffer);
+            if (parsed !== null) {
+                const rounded = roundToEighth(parsed);
+                // Find the active measurement input and update it
+                const inputEl = document.querySelector(`.meas-input[data-id="${numpadState.activeId}"]`);
+                if (inputEl) {
+                    inputEl.dataset.value = rounded;
+                    inputEl.innerHTML = `
+                        ${formatFeetInches(rounded).display}
+                        <span style="font-size:13px; color:#3B00DB; font-family:monospace;">(${formatTotal(rounded)})</span>
+                    `;
+                    // Fire custom event on the element
+                    inputEl.dispatchEvent(new CustomEvent('numpad-input', { detail: rounded }));
+                }
+            }
+            // Close numpad
+            document.getElementById('numpad').classList.remove('show');
+            numpadState.activeId = null;
+            numpadState.buffer = '';
+        }
+        
+        // Math helpers – 1/8" precision
+        function roundToEighth(v) {
+            if (v === null || isNaN(v)) return 0;
+            return Math.round(v * 8) / 8;
+        }
+        
+        const fractionMap = {
+            "0.125": "1/8", "0.250": "1/4", "0.375": "3/8",
+            "0.500": "1/2", "0.625": "5/8", "0.750": "3/4", "0.875": "7/8"
+        };
+        
+        function formatFeetInches(inches) {
+            const v = roundToEighth(inches);
+            if (v < 0.01) return { display: '0"', displayWithTotal: '0"' };
+            
+            const ft = Math.floor(v / 12);
+            let rem = v % 12;
+            const whole = Math.floor(rem);
+            const fracDec = rem - whole;
+            let fracStr = '';
+            const key = Number(fracDec.toFixed(3)).toFixed(3);
+            if (fracDec > 0.01) fracStr = fractionMap[key] || '';
+            
+            let display = '';
+            if (ft > 0) display += `${ft}’`;
+            if (whole > 0 || fracStr) {
+                if (ft > 0) display += ' ';
+                display += `${whole}`;
+                if (fracStr) display += fracStr;
+                display += '"';
+            }
+            if (ft === 0 && whole === 0 && fracStr) display = `${fracStr}"`;
+            if (ft === 0 && whole === 0 && !fracStr) display = '0"';
+            
+            const total = formatTotal(v);
+            return { display, displayWithTotal: `${display} (${total})` };
+        }
+        
+        function formatTotal(inches) {
+            const v = roundToEighth(inches);
+            const whole = Math.floor(v);
+            const fracDec = v - whole;
+            let fracStr = '';
+            const key = Number(fracDec.toFixed(3)).toFixed(3);
+            if (fracDec > 0.01) fracStr = fractionMap[key] || '';
+            return `${whole}"${fracStr}`;
+        }
+        
+        // Imperial parser – exactly as specified (handles every example)
+        function parseImperialInput(str) {
+            if (!str || typeof str !== 'string') return null;
+            let s = str.trim()
+                .replace(/[′’`]/g, "'")
+                .replace(/[″“”]/g, '"')
+                .replace(/\s+/g, ' ');
+            
+            // Plain decimal
+            if (/^\d*\.?\d+$/.test(s)) return parseFloat(s);
+            
+            // Feet + inches
+            const feetMatch = s.match(/(-?\d+(?:\.\d+)?)\s*'/);
+            let feet = feetMatch ? parseFloat(feetMatch[1]) : 0;
+            
+            // Remaining after feet
+            let inchPart = s.replace(/.*?'/, '').trim();
+            if (!inchPart) return feet * 12;
+            
+            // Parse inch portion
+            // 6 1/4   or 6-1/4   or 6.5   or 1/4   or 6" 1/4
+            const fracMatch = inchPart.match(/(\d+)?\s*[ -]?(\d+)\/(\d+)/);
+            if (fracMatch) {
+                let whole = fracMatch[1] ? parseFloat(fracMatch[1]) : 0;
+                let num = parseFloat(fracMatch[2]);
+                let den = parseFloat(fracMatch[3]);
+                return feet * 12 + whole + (num / den);
+            }
+            
+            // Decimal inches in inch part
+            const decMatch = inchPart.match(/(\d+\.?\d*)/);
+            if (decMatch) return feet * 12 + parseFloat(decMatch[1]);
+            
+            // Last resort
+            const num = Number(s);
+            return isNaN(num) ? null : num;
+        }
+        
+        // Data model
+        let projects = JSON.parse(localStorage.getItem('panelpro_projects')) || [];
+        let userProfiles = JSON.parse(localStorage.getItem('panelpro_profiles')) || [
+            { id: 'pbr-default', name: 'PBR-36', coverage: 36, rib: 12 }
+        ];
+        
+        const standardProfiles = [
+            { name: 'PBR-36', coverage: 36, rib: 12 },
+            { name: 'PBR-24', coverage: 24, rib: 12 },
+            { name: '7/8" Corrugated', coverage: 26, rib: 8 },
+            { name: 'Standing Seam 24"', coverage: 24, rib: 12 },
+            { name: 'Snap-Lock 16"', coverage: 16, rib: 16 }
+        ];
+        
+        // Persistence
+        function saveData() {
+            localStorage.setItem('panelpro_projects', JSON.stringify(projects));
+            localStorage.setItem('panelpro_profiles', JSON.stringify(userProfiles));
+        }
+        
+        // Render measurement fields
+        function renderMeasurementFields() {
+            const fields = document.querySelectorAll('.meas-input');
+            fields.forEach(field => {
+                if (!field.dataset.value) field.dataset.value = '0';
+                const v = parseFloat(field.dataset.value);
+                field.innerHTML = `
+                    ${formatFeetInches(v).display}
+                    <span style="font-size:13px; color:#3B00DB; font-family:monospace;">(${formatTotal(v)})</span>
+                `;
+                field.onclick = () => setNumpadActive(field.dataset.id);
+            });
+        }
+        
+        // Project CRUD
+        function renderProjects() {
+            const container = document.getElementById('project-list');
+            container.innerHTML = projects.length ? '' : '<div class="card" style="text-align:center; padding:40px 20px; color:#7a7a8c;">No projects yet.<br>Tap + New Project to begin.</div>';
+            
+            projects.forEach((p, i) => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <strong>${p.name}</strong><br>
+                            <small style="color:#7a7a8c;">${p.walls.length} walls • ${new Date(p.created).toLocaleDateString()}</small>
+                        </div>
+                        <button onclick="openProject(${i}); event.stopImmediatePropagation();" style="width:auto; padding:8px 20px; background:#3B00DB;">Open</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        function newProject() {
+            const name = prompt('Project name (e.g. Job #472 – Lynnwood Warehouse)', 'New Project ' + (projects.length + 1));
+            if (!name) return;
+            projects.unshift({
+                id: 'proj-' + Date.now(),
+                name: name,
+                created: Date.now(),
+                walls: []
+            });
+            saveData();
+            renderProjects();
+            openProject(0);
+        }
+        
+        function openProject(index) {
+            currentProject = projects[index];
+            document.getElementById('current-project').textContent = currentProject.name;
+            document.getElementById('view-dashboard').classList.remove('active');
+            document.getElementById('view-project').classList.add('active');
+            renderProjectDetail();
+        }
+        
+        function backToDashboard() {
+            currentProject = null;
+            document.getElementById('view-project').classList.remove('active');
+            document.getElementById('view-dashboard').classList.add('active');
+            renderProjects();
+        }
+        
+        function renderProjectDetail() {
+            document.getElementById('project-name').textContent = currentProject.name;
+            const container = document.getElementById('wall-list');
+            container.innerHTML = '';
+            
+            currentProject.walls.forEach((wall, i) => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.innerHTML = `
+                    <strong>${wall.name}</strong><br>
+                    <small style="color:#7a7a8c;">${formatFeetInches(wall.width).display} wide • ${wall.openings.length} openings</small>
+                    <div style="margin-top:12px; display:flex; gap:8px;">
+                        <button onclick="editWall(${i}); event.stopImmediatePropagation();" class="secondary" style="flex:1; padding:10px;">Edit Geometry</button>
+                        <button onclick="openLayout(${i}); event.stopImmediatePropagation();" style="flex:1; padding:10px;">View Layout + Cut List</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            
+            if (!currentProject.walls.length) {
+                container.innerHTML = `<div class="card" style="text-align:center; padding:40px;">No walls yet.<br>Tap “+ Add Gable End Wall” above.</div>`;
+            }
+        }
+        
+        function addWallToProject() {
+            currentWall = {
+                id: 'wall-' + Date.now(),
+                name: 'Gable End Wall ' + (currentProject.walls.length + 1),
+                width: 480,
+                leftEave: 108,
+                rightEave: 108,
+                leftCut: 108,
+                rightCut: 108,
+                ridgeHeight: 48,
+                ridgeLeft: 240,
+                ridgeRight: 240,
+                profileId: 'pbr-default',
+                openings: [],
+                selectedLayout: null,
+                layouts: []
+            };
+            currentProject.walls.push(currentWall);
+            saveData();
+            editWall(currentProject.walls.length - 1);
+        }
+        
+        function editWall(index) {
+            currentWall = currentProject.walls[index];
+            document.getElementById('view-project').classList.remove('active');
+            document.getElementById('view-geometry').classList.add('active');
+            document.getElementById('wall-title').textContent = currentWall.name;
+            document.getElementById('wall-name-input').value = currentWall.name;
+            
+            // Populate measurement fields
+            const fields = {
+                width: currentWall.width,
+                leftEave: currentWall.leftEave,
+                rightEave: currentWall.rightEave,
+                leftCut: currentWall.leftCut,
+                rightCut: currentWall.rightCut,
+                ridgeHeight: currentWall.ridgeHeight,
+                ridgeLeft: currentWall.ridgeLeft,
+                ridgeRight: currentWall.ridgeRight
+            };
+            
+            Object.keys(fields).forEach(key => {
+                const el = document.getElementById('meas-' + key);
+                if (el) {
+                    el.dataset.value = fields[key];
+                }
+            });
+            
+            renderMeasurementFields();
+            
+            // Profile select
+            const select = document.getElementById('wall-profile-select');
+            select.innerHTML = '';
+            [...userProfiles, ...standardProfiles.map((p,i) => ({...p, id:'std-'+i}))].forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id || p.name;
+                opt.textContent = `${p.name} – ${p.coverage}" coverage`;
+                if (p.id === currentWall.profileId) opt.selected = true;
+                select.appendChild(opt);
+            });
+            
+            renderOpenings();
+        }
+        
+        function saveWallGeometry() {
+            if (!currentWall) return;
+            currentWall.name = document.getElementById('wall-name-input').value || 'Unnamed Wall';
+            
+            // Read measurement values
+            const ids = ['width','leftEave','rightEave','leftCut','rightCut','ridgeHeight','ridgeLeft','ridgeRight'];
+            ids.forEach(id => {
+                const el = document.getElementById('meas-' + id);
+                if (el && el.dataset.value) currentWall[id] = parseFloat(el.dataset.value);
+            });
+            
+            currentWall.profileId = document.getElementById('wall-profile-select').value;
+            
+            saveData();
+            backToProject();
+        }
+        
+        function backToProject() {
+            document.getElementById('view-geometry').classList.remove('active');
+            document.getElementById('view-project').classList.add('active');
+            renderProjectDetail();
+        }
+        
+        // Openings
+        function addOpening() {
+            const pos = prompt('Position from left (inches)', '120');
+            const w = prompt('Opening width (inches)', '36');
+            const h = prompt('Opening height from base (inches)', '84');
+            if (!pos || !w || !h) return;
+            
+            currentWall.openings.push({
+                id: 'open-' + Date.now(),
+                left: parseFloat(pos),
+                width: parseFloat(w),
+                height: parseFloat(h)
+            });
+            renderOpenings();
+        }
+        
+        function renderOpenings() {
+            const container = document.getElementById('openings-list');
+            container.innerHTML = currentWall.openings.map((o,i) => `
+                <div style="background:#1f1b2e; padding:10px; border-radius:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                    <div><strong>Opening ${i+1}</strong><br>${formatFeetInches(o.left).display} from left • ${formatFeetInches(o.width).display} wide</div>
+                    <button onclick="deleteOpening(${i});" style="background:#8b0000; color:white; border:none; padding:4px 12px; border-radius:4px; font-size:13px;">×</button>
+                </div>
+            `).join('') || '<small style="color:#7a7a8c; padding:12px; display:block;">No openings added yet.</small>';
+        }
+        
+        function deleteOpening(i) {
+            currentWall.openings.splice(i, 1);
+            renderOpenings();
+        }
+        
+        // Layout generation – 3 best balanced options
+        function openLayout(index) {
+            currentWall = currentProject.walls[index];
+            document.getElementById('view-project').classList.remove('active');
+            document.getElementById('view-layout').classList.add('active');
+            document.getElementById('layout-wall-name').textContent = currentWall.name;
+            
+            // Auto-generate 3 layouts if none exist
+            if (!currentWall.layouts || currentWall.layouts.length === 0) {
+                currentWall.layouts = generateThreeLayouts();
+            }
+            
+            renderLayoutOptions();
+        }
+        
+        function generateThreeLayouts() {
+            const cov = getProfileCoverage(currentWall.profileId);
+            const ridgeX = currentWall.ridgeLeft;
+            const w = currentWall.width;
+            
+            // Option 1: Ridge exactly on a seam
+            const offset1 = ridgeX % cov;
+            // Option 2: Ridge centered under a panel
+            const offset2 = (ridgeX % cov) - (cov / 2);
+            // Option 3: Minimal partials at both ends (symmetric)
+            const offset3 = (w % cov) / 2;
+            
+            return [
+                { id: 1, name: 'Ridge on Seam', offset: offset1, description: 'Perfect seam alignment under ridge' },
+                { id: 2, name: 'Ridge Centered on Panel', offset: offset2, description: 'Balanced panel count left/right' },
+                { id: 3, name: 'Symmetric End Cuts', offset: offset3, description: 'Minimal cut panels at both ends' }
+            ];
+        }
+        
+        function getProfileCoverage(id) {
+            const prof = userProfiles.find(p => p.id === id) || standardProfiles.find(p => p.name === id);
+            return prof ? prof.coverage : 36;
+        }
+        
+        function renderLayoutOptions() {
+            const container = document.getElementById('layout-options');
+            container.innerHTML = currentWall.layouts.map((opt, i) => `
+                <div onclick="chooseLayout(${i});" class="card" style="cursor:pointer; ${currentWall.selectedLayout === opt.id ? 'border-color:#3B00DB; background:#2a2638;' : ''}">
+                    <strong>${opt.name}</strong><br>
+                    <small>${opt.description}</small>
+                </div>
+            `).join('');
+            
+            if (currentWall.selectedLayout) {
+                renderCanvasAndCutList();
+            }
+        }
+        
+        function chooseLayout(i) {
+            currentWall.selectedLayout = currentWall.layouts[i].id;
+            currentWall.chosenOffset = currentWall.layouts[i].offset;
+            saveData();
+            renderLayoutOptions();
+            renderCanvasAndCutList();
+        }
+        
+        function renderCanvasAndCutList() {
+            const canvas = document.getElementById('layout-canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const w = currentWall.width;
+            const cov = getProfileCoverage(currentWall.profileId);
+            const offset = currentWall.chosenOffset || 0;
+            
+            const scaleX = canvas.width / w * 0.9;
+            const baseY = canvas.height - 60;
+            const heightScale = (canvas.height - 120) / Math.max(currentWall.leftCut, currentWall.rightCut, currentWall.ridgeHeight + Math.max(currentWall.leftEave, currentWall.rightEave));
+            
+            // Draw wall base rectangle
+            ctx.strokeStyle = '#3a3550';
+            ctx.lineWidth = 6;
+            ctx.fillStyle = '#1f1b2e';
+            ctx.fillRect(30, baseY - 20, canvas.width - 60, 20);
+            ctx.strokeRect(30, baseY - 20, canvas.width - 60, 20);
+            
+            // Draw gable top line
+            ctx.strokeStyle = '#3B00DB';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            const leftY = baseY - (currentWall.leftCut * heightScale);
+            const rightY = baseY - (currentWall.rightCut * heightScale);
+            const ridgeXpx = 30 + (currentWall.ridgeLeft * scaleX);
+            const ridgeY = baseY - ((Math.max(currentWall.leftEave, currentWall.rightEave) + currentWall.ridgeHeight) * heightScale);
+            
+            ctx.moveTo(30, leftY);
+            ctx.lineTo(ridgeXpx, ridgeY);
+            ctx.lineTo(canvas.width - 30, rightY);
+            ctx.stroke();
+            
+            // Panels
+            const panels = [];
+            let x = offset;
+            let panelNum = 1;
+            
+            while (x < w) {
+                const leftX = Math.max(0, x);
+                const rightX = Math.min(w, x + cov);
+                const panelLeftPx = 30 + leftX * scaleX;
+                const panelRightPx = 30 + rightX * scaleX;
+                
+                // Panel height at left & right of this panel
+                const leftHeight = interpolateGableHeight(leftX);
+                const rightHeight = interpolateGableHeight(rightX);
+                
+                panels.push({
+                    num: panelNum,
+                    leftX: leftX,
+                    rightX: rightX,
+                    leftH: leftHeight,
+                    rightH: rightHeight
+                });
+                
+                // Draw panel
+                ctx.strokeStyle = '#7a7a8c';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(panelLeftPx, baseY);
+                ctx.lineTo(panelLeftPx, baseY - leftHeight * heightScale);
+                ctx.lineTo(panelRightPx, baseY - rightHeight * heightScale);
+                ctx.lineTo(panelRightPx, baseY);
+                ctx.stroke();
+                
+                // Ribs
+                const ribCount = Math.floor(cov / 12);
+                for (let r = 1; r < ribCount; r++) {
+                    const ribX = panelLeftPx + (r * 12 / cov) * (panelRightPx - panelLeftPx);
+                    ctx.beginPath();
+                    ctx.moveTo(ribX, baseY);
+                    ctx.lineTo(ribX, baseY - ((leftHeight + rightHeight) / 2) * heightScale);
+                    ctx.stroke();
+                }
+                
+                x += cov;
+                panelNum++;
+            }
+            
+            // Openings overlay
+            currentWall.openings.forEach(o => {
+                ctx.fillStyle = 'rgba(139,0,0,0.6)';
+                const ox = 30 + o.left * scaleX;
+                const oy = baseY - o.height * heightScale;
+                ctx.fillRect(ox, oy, o.width * scaleX, o.height * heightScale);
+            });
+            
+            // Store panels for cut list
+            currentWall.currentPanels = panels;
+            renderCutList(panels);
+        }
+        
+        function interpolateGableHeight(x) {
+            const w = currentWall.width;
+            const ridgeX = currentWall.ridgeLeft;
+            if (x <= ridgeX) {
+                const t = x / ridgeX;
+                return currentWall.leftCut + t * (currentWall.ridgeHeight + Math.max(currentWall.leftEave, currentWall.rightEave) - currentWall.leftCut);
+            } else {
+                const t = (x - ridgeX) / (w - ridgeX);
+                return (currentWall.ridgeHeight + Math.max(currentWall.leftEave, currentWall.rightEave)) + t * (currentWall.rightCut - (currentWall.ridgeHeight + Math.max(currentWall.leftEave, currentWall.rightEave)));
+            }
+        }
+        
+        function renderCutList(panels) {
+            const container = document.getElementById('cut-list');
+            container.innerHTML = panels.map(p => `
+                <div class="card" onclick="alert('Panel #${p.num}\\nLeft: ${formatFeetInches(p.leftH).displayWithTotal}\\nRight: ${formatFeetInches(p.rightH).displayWithTotal}');">
+                    <strong>Panel ${p.num}</strong> – ${formatFeetInches(p.leftX).display} to ${formatFeetInches(p.rightX).display}
+                    <div style="margin-top:4px; color:#3B00DB;">
+                        ${formatFeetInches(p.leftH).display} → ${formatFeetInches(p.rightH).display}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function backToProjectFromLayout() {
+            document.getElementById('view-layout').classList.remove('active');
+            document.getElementById('view-project').classList.add('active');
+            renderProjectDetail();
+        }
+        
+        // Profile catalog
+        function renderLibrary() {
+            // Standard
+            const stdContainer = document.getElementById('std-profiles');
+            stdContainer.innerHTML = standardProfiles.map(p => `
+                <div class="card" style="padding:12px;">
+                    <strong>${p.name}</strong><br>
+                    Coverage: ${p.coverage}" • Rib OC: ${p.rib}"
+                </div>
+            `).join('');
+            
+            // User profiles
+            const userContainer = document.getElementById('user-profiles');
+            userContainer.innerHTML = userProfiles.map((p,i) => `
+                <div onclick="editProfile(${i});" class="card" style="padding:12px; cursor:pointer;">
+                    <strong>${p.name}</strong><br>
+                    Coverage: ${p.coverage}" • Rib OC: ${p.rib}"
+                </div>
+            `).join('');
+        }
+        
+        function showProfileModal() {
+            currentProfileEditId = null;
+            document.getElementById('modal-title').textContent = 'New Panel Profile';
+            document.getElementById('profile-name').value = '';
+            document.getElementById('meas-coverage').dataset.value = '36';
+            document.getElementById('meas-rib').dataset.value = '12';
+            renderMeasurementFields(); // reuse for modal fields
+            document.getElementById('profile-modal').classList.add('show');
+        }
+        
+        function editProfile(i) {
+            currentProfileEditId = i;
+            const p = userProfiles[i];
+            document.getElementById('modal-title').textContent = 'Edit Profile';
+            document.getElementById('profile-name').value = p.name;
+            document.getElementById('meas-coverage').dataset.value = p.coverage;
+            document.getElementById('meas-rib').dataset.value = p.rib;
+            renderMeasurementFields();
+            document.getElementById('profile-modal').classList.add('show');
+        }
+        
+        function saveProfile() {
+            const name = document.getElementById('profile-name').value || 'Custom Profile';
+            const cov = parseFloat(document.getElementById('meas-coverage').dataset.value) || 36;
+            const rib = parseFloat(document.getElementById('meas-rib').dataset.value) || 12;
+            
+            if (currentProfileEditId !== null) {
+                userProfiles[currentProfileEditId].name = name;
+                userProfiles[currentProfileEditId].coverage = cov;
+                userProfiles[currentProfileEditId].rib = rib;
+            } else {
+                userProfiles.push({
+                    id: 'user-' + Date.now(),
+                    name: name,
+                    coverage: cov,
+                    rib: rib
+                });
+            }
+            hideProfileModal();
+            saveData();
+            renderLibrary();
+        }
+        
+        function deleteCurrentProfile() {
+            if (currentProfileEditId === null) return;
+            if (confirm('Delete this profile permanently?')) {
+                userProfiles.splice(currentProfileEditId, 1);
+                hideProfileModal();
+                saveData();
+                renderLibrary();
+            }
+        }
+        
+        function hideProfileModal() {
+            document.getElementById('profile-modal').classList.remove('show');
+        }
+        
+        // Navigation
+        function navigate(n) {
+            document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.toggle('active', i===n));
+            document.querySelectorAll('main').forEach(m => m.classList.remove('active'));
+            
+            if (n === 0) {
+                document.getElementById('view-dashboard').classList.add('active');
+                renderProjects();
+            } else if (n === 1) {
+                // New wall – requires a project
+                if (!currentProject) {
+                    alert('Please open or create a project first');
+                    navigate(0);
+                    return;
+                }
+                addWallToProject();
+            } else if (n === 2) {
+                document.getElementById('view-library').classList.add('active');
+                renderLibrary();
+            }
+        }
+        
+        // Service Worker registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('%c✅ Service Worker registered – full offline PWA ready', 'color:#3B00DB; font-weight:600'))
+                    .catch(err => console.log('SW registration failed', err));
+            });
+        }
+        
+        // App bootstrap
+        function init() {
+            renderProjects();
+            renderMeasurementFields(); // initial empty fields
+            console.log('%c🚀 PanelPro Field PWA initialized – 100% vanilla, offline, 1/8" precision, iPhone 16 Pro Max optimized', 'color:#3B00DB; background:#120f1e; padding:2px 6px; border-radius:3px');
+        }
+        
+        window.onload = init;
+    </script>
+</body>
+</html>
