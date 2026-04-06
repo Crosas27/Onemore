@@ -4,7 +4,7 @@
   "start_url": ".",
   "display": "standalone",
   "background_color": "#191626",
-  "theme_color": "#3B00DB",
+  "theme_color": "#ffffff",
   "icons": [
     {
       "src": "https://via.placeholder.com/192x192/3B00DB/ffffff?text=PP",
