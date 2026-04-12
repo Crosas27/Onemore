@@ -1,14 +1,21 @@
 {
-  "name": "PanelPro Field",
-  "short_name": "PanelPro",
-  "start_url": ".",
+  "name": "Metal Panel Layout Tool",
+  "short_name": "PanelLayout",
+  "description": "Balanced panel layout and cut list generator for R-Panel / PBR metal panel installations",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#191626",
-  "theme_color": "#ffffff",
+  "background_color": "#0F1117",
+  "theme_color": "#5B8AF0",
+  "orientation": "any",
   "icons": [
     {
-      "src": "https://via.placeholder.com/192x192/3B00DB/ffffff?text=PP",
+      "src": "icons/icon-192.png",
       "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]
